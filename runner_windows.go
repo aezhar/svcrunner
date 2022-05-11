@@ -16,7 +16,7 @@
 
 //go:build windows
 
-package service
+package svcrunner
 
 import (
 	"context"
@@ -27,8 +27,6 @@ import (
 
 	"golang.org/x/sys/windows/svc"
 )
-
-var cancelFn context.CancelFunc
 
 type windowsService struct {
 	service   S
@@ -88,6 +86,9 @@ func (ws *windowsService) Execute(args []string, r <-chan svc.ChangeRequest, cha
 	}
 }
 
+// Ensure Run implements the correct public interface.
+var _ runFn = Run
+
 // Run runs an implementation of the Service interface.
 //
 // Run will block until the Windows Service is stopped or Ctrl+C is
@@ -124,9 +125,4 @@ func Run(service S) error {
 	} else {
 		return ws.runInteractive()
 	}
-}
-
-// Stop will request the service to shut down.
-func Stop() {
-	cancelFn()
 }

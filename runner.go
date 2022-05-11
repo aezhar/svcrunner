@@ -14,7 +14,11 @@
 // permissions and limitations under the License.
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-package service
+package svcrunner
+
+import (
+	"context"
+)
 
 type S interface {
 	// GetName returns a short descriptive name for the service.
@@ -31,4 +35,16 @@ type S interface {
 
 	// Stop is called in response to a request to stop the service.
 	Stop() error
+}
+
+// runFn is platform specific.
+type runFn func(service S) error
+
+var cancelFn context.CancelFunc
+
+// Stop will request the service to shut down.
+func Stop() {
+	if cancelFn != nil {
+		cancelFn()
+	}
 }

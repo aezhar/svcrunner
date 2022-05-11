@@ -16,7 +16,7 @@
 
 //go:build linux
 
-package service
+package svcrunner
 
 import (
 	"context"
@@ -28,7 +28,8 @@ import (
 	"github.com/coreos/go-systemd/daemon"
 )
 
-var cancelFn context.CancelFunc
+// Ensure Run implements the correct public interface.
+var _ runFn = Run
 
 func Run(service S) error {
 	if err := service.Init(); err != nil {
@@ -57,8 +58,4 @@ func Run(service S) error {
 	daemon.SdNotify(false, daemon.SdNotifyStopping)
 
 	return service.Stop()
-}
-
-func Stop() {
-	cancelFn()
 }
