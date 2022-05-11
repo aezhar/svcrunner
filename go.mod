@@ -1,4 +1,4 @@
-module github.com/aezhar/svrunner
+module github.com/aezhar/svcrunner
 
 go 1.18
 
