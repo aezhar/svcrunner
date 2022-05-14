@@ -30,9 +30,6 @@ type S interface {
 	// Start is called after Init.
 	Start() error
 
-	// Reload is called in response to a reload request.
-	Reload()
-
 	// Stop is called in response to a request to stop the service.
 	Stop() error
 }
