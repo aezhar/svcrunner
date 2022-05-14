@@ -20,27 +20,35 @@ package svcrunner
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/coreos/go-systemd/daemon"
+	"github.com/mdlayher/sdnotify"
+	"go.uber.org/multierr"
 )
 
 // Ensure Run implements the correct public interface.
 var _ runFn = Run
 
-func Run(service S) error {
+func Run(service S) (err error) {
+	notifier, err := sdnotify.New()
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	defer multierr.AppendInvoke(&err, multierr.Close(notifier))
+
 	if err := service.Init(); err != nil {
 		return fmt.Errorf("svchost/init: %w", err)
 	}
 
-	daemon.SdNotify(false, daemon.SdNotifyReady)
-
 	if err := service.Start(); err != nil {
 		return fmt.Errorf("svchost/start: %w", err)
 	}
+
+	notifier.Notify(sdnotify.Ready)
 
 	var ctx context.Context
 	ctx, cancelFn = context.WithCancel(context.Background())
@@ -55,7 +63,7 @@ func Run(service S) error {
 	case <-sigCh:
 	}
 
-	daemon.SdNotify(false, daemon.SdNotifyStopping)
+	notifier.Notify(sdnotify.Stopping)
 
 	return service.Stop()
 }
